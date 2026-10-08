@@ -1,4 +1,4 @@
-﻿package com.razorpay.common.enums;
+package com.razorpay.common.enums;
 
 public enum EventAggregateType {
     PAYMENT,

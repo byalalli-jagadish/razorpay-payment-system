@@ -1,4 +1,4 @@
-﻿package com.razorpay.payment.entity;
+package com.razorpay.payment.entity;
 
 import com.razorpay.common.entity.BaseEntity;
 import com.razorpay.common.enums.EventAggregateType;

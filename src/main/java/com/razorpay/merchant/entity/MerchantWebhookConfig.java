@@ -1,4 +1,4 @@
-﻿package com.razorpay.merchant.entity;
+package com.razorpay.merchant.entity;
 
 import com.razorpay.common.entity.BaseEntity;
 import jakarta.persistence.*;
