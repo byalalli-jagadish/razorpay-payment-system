@@ -31,4 +31,22 @@ public class GlobalExceptionHandler {
                 "errorCode", "INVALID_JSON",
                 "message", "Request body contains invalid JSON"));
     }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(ResourceNotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", HttpStatus.NOT_FOUND.value(),
+                "errorCode", "RESOURCE_NOT_FOUND",
+                "message", exception.getMessage()));
+    }
+
+    @ExceptionHandler(BusinessRuleViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleBusinessRule(BusinessRuleViolationException exception) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(Map.of(
+                "timestamp", Instant.now().toString(),
+                "status", HttpStatus.UNPROCESSABLE_ENTITY.value(),
+                "errorCode", exception.getErrorCode(),
+                "message", exception.getMessage()));
+    }
 }

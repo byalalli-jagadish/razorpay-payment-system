@@ -1,0 +1,31 @@
+package com.razorpay.payment.statemachine;
+
+import com.razorpay.common.enums.PaymentEvent;
+import com.razorpay.common.enums.PaymentStatus;
+import com.razorpay.common.exception.InvalidStateTransitionException;
+import org.springframework.stereotype.Component;
+
+import java.util.Map;
+
+@Component
+public class PaymentStateMachine {
+    private record Transition(PaymentStatus from, PaymentEvent event) {}
+
+    private static final Map<Transition, PaymentStatus> TRANSITIONS = Map.ofEntries(
+            Map.entry(new Transition(PaymentStatus.CREATED, PaymentEvent.AUTHORIZE_ATTEMPT), PaymentStatus.AUTHORIZING),
+            Map.entry(new Transition(PaymentStatus.AUTHORIZING, PaymentEvent.AUTHORIZE_SUCCESS), PaymentStatus.AUTHORIZED),
+            Map.entry(new Transition(PaymentStatus.AUTHORIZING, PaymentEvent.AUTHORIZE_FAIL), PaymentStatus.FAILED),
+            Map.entry(new Transition(PaymentStatus.AUTHORIZED, PaymentEvent.CAPTURE_REQUEST), PaymentStatus.CAPTURING),
+            Map.entry(new Transition(PaymentStatus.CAPTURING, PaymentEvent.CAPTURE_SUCCESS), PaymentStatus.CAPTURED),
+            Map.entry(new Transition(PaymentStatus.CAPTURING, PaymentEvent.CAPTURE_FAIL), PaymentStatus.AUTHORIZED),
+            Map.entry(new Transition(PaymentStatus.CREATED, PaymentEvent.CANCEL), PaymentStatus.CANCELLED),
+            Map.entry(new Transition(PaymentStatus.AUTHORIZING, PaymentEvent.CANCEL), PaymentStatus.CANCELLED),
+            Map.entry(new Transition(PaymentStatus.AUTHORIZED, PaymentEvent.CAPTURE_TIMEOUT), PaymentStatus.AUTH_EXPIRED)
+    );
+
+    public PaymentStatus transition(PaymentStatus current, PaymentEvent event) {
+        PaymentStatus next = TRANSITIONS.get(new Transition(current, event));
+        if (next == null) throw new InvalidStateTransitionException(current.name(), event.name());
+        return next;
+    }
+}

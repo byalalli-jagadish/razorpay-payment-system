@@ -1,7 +1,9 @@
 package com.razorpay.merchant.service.impl;
 
 import com.razorpay.merchant.Dto.Request.MerchantSignupRequest;
+import com.razorpay.merchant.Dto.Request.LoginRequest;
 import com.razorpay.merchant.Dto.Response.MerchantResponse;
+import com.razorpay.merchant.Dto.Response.LoginResponse;
 import com.razorpay.common.enums.MerchantStatus;
 import com.razorpay.common.enums.UserRole;
 import com.razorpay.common.exception.DuplicateResourceException;
@@ -11,6 +13,7 @@ import com.razorpay.merchant.mapper.MerchantMapper;
 import com.razorpay.merchant.repository.AppUSerRepository;
 import com.razorpay.merchant.repository.MerchantRepository;
 import com.razorpay.merchant.service.AuthService;
+import com.razorpay.merchant.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final AppUSerRepository appUserRepository;
     private final MerchantMapper merchantMapper;
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final JwtUtil jwtUtil;
 
     @Override
     @Transactional
@@ -48,5 +52,16 @@ public class AuthServiceImpl implements AuthService {
                 .build());
 
         return merchantMapper.toResponse(merchant);
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        AppUser user = appUserRepository.findByEmail(request.email())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+        return new LoginResponse(jwtUtil.generate(
+                user.getEmail(), user.getMerchant().getId(), user.getRole().name()));
     }
 }
